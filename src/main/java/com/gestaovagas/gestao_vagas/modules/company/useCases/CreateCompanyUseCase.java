@@ -12,21 +12,22 @@ public class CreateCompanyUseCase {
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public CreateCompanyUseCase(CompanyRepository companyRepository, PasswordEncoder passwordEncoder) {
+    public CreateCompanyUseCase(
+            CompanyRepository companyRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.companyRepository = companyRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public  CompanyEntity execute(CompanyEntity companyEntity){
+    public CompanyEntity execute(CompanyEntity companyEntity) {
 
-        this.companyRepository.findByUsernameOrEmail(companyEntity.getUsername(), companyEntity.getEmail())
-                .ifPresent((user) -> {
-                    throw new UserFoundException();
-                });
+        companyRepository
+                .findByUsernameOrEmail(companyEntity.getUsername(), companyEntity.getEmail())
+                .ifPresent(user -> { throw new UserFoundException(); });
 
         companyEntity.setPassword(passwordEncoder.encode(companyEntity.getPassword()));
 
-        return this.companyRepository.save(companyEntity);
+        return companyRepository.save(companyEntity);
     }
-
 }

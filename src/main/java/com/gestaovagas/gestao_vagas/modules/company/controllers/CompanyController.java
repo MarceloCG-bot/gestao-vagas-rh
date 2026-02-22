@@ -1,6 +1,5 @@
 package com.gestaovagas.gestao_vagas.modules.company.controllers;
 
-import com.gestaovagas.gestao_vagas.exceptions.UserFoundException;
 import com.gestaovagas.gestao_vagas.modules.company.entities.CompanyEntity;
 import com.gestaovagas.gestao_vagas.modules.company.useCases.CreateCompanyUseCase;
 import jakarta.validation.Valid;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/company/")
+@RequestMapping("/company")
 public class CompanyController {
 
     private final CreateCompanyUseCase createCompanyUseCase;
@@ -21,12 +20,13 @@ public class CompanyController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Object> create(@Valid @RequestBody CompanyEntity companyEntity){
-        try{
+    public ResponseEntity<Object> create(@Valid @RequestBody CompanyEntity companyEntity) {
+        try {
             var result = this.createCompanyUseCase.execute(companyEntity);
             return ResponseEntity.ok().body(result);
-        }catch (UserFoundException e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 }

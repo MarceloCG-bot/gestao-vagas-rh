@@ -1,8 +1,8 @@
 package com.gestaovagas.gestao_vagas.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,10 +11,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private SecurityFilter securityFilter;
+    private final SecurityFilter securiryFilter;
+
+    private final SecurityCandidateFilter securityCandidateFilter;
+
+    public SecurityConfig(SecurityFilter securiryFilter, SecurityCandidateFilter securityCandidateFilter) {
+        this.securiryFilter = securiryFilter;
+        this.securityCandidateFilter = securityCandidateFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -22,17 +29,25 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // públicas
+                        .requestMatchers("/auth/**").permitAll()
 
-                        // ✅ libera rotas públicas
-                        .requestMatchers("/candidate/**").permitAll()
-                        .requestMatchers("/company/**").permitAll()
-                        .requestMatchers("/auth/company").permitAll()
+                        // swagger / openapi (liberar)
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-                        // ✅ qualquer outra rota exige login
+                        // protegidas
+                        .requestMatchers("/company/**").authenticated()
+                        .requestMatchers("/candidate/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(securityFilter, BasicAuthenticationFilter.class);
-        ;
+                // ordem: tanto faz, mas eu prefiro company depois candidate
+                .addFilterBefore(securityCandidateFilter, BasicAuthenticationFilter.class)
+                .addFilterBefore(securiryFilter, BasicAuthenticationFilter.class);
 
         return http.build();
     }

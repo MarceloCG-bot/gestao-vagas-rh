@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class JWTProvider {
+public class JWTCandidateProvider {
 
-    @Value("${security.token.secret}")
+    @Value("${security.token.secret.candidate}")
     private String secretKey;
 
     public DecodedJWT validateToken(String token) {
@@ -27,7 +27,8 @@ public class JWTProvider {
                     .verify(token);
 
         } catch (JWTVerificationException ex) {
-            log.warn("Erro ao validar token JWT: {}", ex.getMessage());
+
+            log.warn("Token JWT do candidato inválido: {}", ex.getMessage());
             return null;
         }
     }

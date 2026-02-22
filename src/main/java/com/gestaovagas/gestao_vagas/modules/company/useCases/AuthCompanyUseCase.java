@@ -1,7 +1,9 @@
 package com.gestaovagas.gestao_vagas.modules.company.useCases;
 
+import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.gestaovagas.gestao_vagas.modules.company.dto.AuthCompanyDTO;
+import com.gestaovagas.gestao_vagas.modules.company.dto.AuthCompanyResponseDTO;
 import com.gestaovagas.gestao_vagas.modules.company.repositories.CompanyRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,10 +11,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.auth0.jwt.JWT;
-
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class AuthCompanyUseCase {
@@ -31,7 +32,7 @@ public class AuthCompanyUseCase {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public String execute(AuthCompanyDTO authCompanyDTO) {
+    public AuthCompanyResponseDTO execute(AuthCompanyDTO authCompanyDTO) {
 
         var company = companyRepository.findByUsername(authCompanyDTO.username())
                 .orElseThrow(() ->
@@ -44,10 +45,17 @@ public class AuthCompanyUseCase {
 
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
-        return JWT.create()
-                .withIssuer("javagas")
-                .withExpiresAt(Instant.now().plus(Duration.ofHours(2)))
+        var expiresIn = Instant.now().plus(Duration.ofHours(2));
+
+        var token = JWT.create()
+                .withExpiresAt(expiresIn)
                 .withSubject(company.getId().toString())
+                .withClaim("roles", List.of("COMPANY"))
                 .sign(algorithm);
+
+        return new AuthCompanyResponseDTO(
+                token,
+                Duration.ofHours(2).getSeconds() // ou expiresIn.toEpochMilli()
+        );
     }
 }
