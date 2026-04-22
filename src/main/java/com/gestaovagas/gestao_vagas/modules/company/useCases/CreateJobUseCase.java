@@ -24,14 +24,14 @@ public class CreateJobUseCase {
 
         UUID companyUUID = UUID.fromString(companyId);
 
-        CompanyEntity company = companyRepository.findById(companyUUID)
+        CompanyEntity companyEntity = companyRepository.findById(companyUUID)
                 .orElseThrow(() -> new IllegalArgumentException("Empresa não encontrada."));
 
         JobEntity job = new JobEntity();
         job.setDescription(dto.description());
         job.setBenefits(dto.benefits());
         job.setLevel(dto.level());
-        job.setCompany(company);
+        job.setCompany(companyEntity);
 
         return jobRepository.save(job);
     }
